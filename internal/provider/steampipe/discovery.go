@@ -114,7 +114,57 @@ func (d *SteampipeDiscoverer) queryTableFallback(ctx context.Context, mapping ta
 	query := fmt.Sprintf("SELECT %s FROM %s", cols, mapping.Table)
 	rows, err := d.pool.Query(ctx, query)
 	if err != nil {
-		return fmt.Errorf("fallback query %s: %w", mapping.Table, err)
+		// Last resort: try just the ID and name columns.
+		return d.queryTableMinimal(ctx, mapping, results)
+	}
+	defer rows.Close()
+
+	fieldDescs := rows.FieldDescriptions()
+	colNames := make([]string, len(fieldDescs))
+	for i, fd := range fieldDescs {
+		colNames[i] = string(fd.Name)
+	}
+
+	count := 0
+	for rows.Next() {
+		values, err := rows.Values()
+		if err != nil {
+			continue
+		}
+
+		metadata := make(map[string]any, len(colNames))
+		for i, col := range colNames {
+			metadata[col] = values[i]
+		}
+
+		res := d.buildResource(mapping, metadata)
+		if res != nil {
+			results <- *res
+			count++
+		}
+	}
+
+	if err := rows.Err(); err != nil && count == 0 {
+		return d.queryTableMinimal(ctx, mapping, results)
+	}
+
+	return nil
+}
+
+// queryTableMinimal tries the absolute minimum: just ID, name, and region.
+func (d *SteampipeDiscoverer) queryTableMinimal(ctx context.Context, mapping tableMapping, results chan<- provider.DiscoveredResource) error {
+	cols := []string{mapping.IDColumn}
+	if mapping.NameColumn != "" && mapping.NameColumn != mapping.IDColumn {
+		cols = append(cols, mapping.NameColumn)
+	}
+	if mapping.RegionColumn != "" {
+		cols = append(cols, mapping.RegionColumn)
+	}
+
+	query := fmt.Sprintf("SELECT %s FROM %s", strings.Join(cols, ", "), mapping.Table)
+	rows, err := d.pool.Query(ctx, query)
+	if err != nil {
+		return fmt.Errorf("minimal query %s: %w", mapping.Table, err)
 	}
 	defer rows.Close()
 
@@ -209,7 +259,7 @@ func awsTableMappings() []tableMapping {
 		{Table: "aws_ec2_instance", ResourceType: provider.ResourceTypeEC2Instance, IDColumn: "arn", NameColumn: "title", RegionColumn: "region", FallbackColumns: []string{"arn", "instance_id", "instance_type", "instance_state", "region", "title", "tags", "vpc_id", "subnet_id", "private_ip_address", "public_ip_address"}},
 		{Table: "aws_eks_cluster", ResourceType: provider.ResourceTypeEKSCluster, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
 		{Table: "aws_ecs_cluster", ResourceType: provider.ResourceTypeECSCluster, IDColumn: "cluster_arn", NameColumn: "cluster_name", RegionColumn: "region"},
-		{Table: "aws_lambda_function", ResourceType: provider.ResourceTypeLambda, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "runtime", "handler", "memory_size", "timeout", "region", "tags"}},
+		{Table: "aws_lambda_function", ResourceType: provider.ResourceTypeLambda, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "runtime", "memory_size", "region"}},
 		{Table: "aws_rds_db_instance", ResourceType: provider.ResourceTypeRDS, IDColumn: "arn", NameColumn: "db_instance_identifier", RegionColumn: "region"},
 		{Table: "aws_s3_bucket", ResourceType: provider.ResourceTypeS3Bucket, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "region", "creation_date", "tags"}},
 		{Table: "aws_iam_user", ResourceType: provider.ResourceTypeIAMUser, IDColumn: "arn", NameColumn: "name", RegionColumn: "", FallbackColumns: []string{"arn", "name", "user_id", "create_date", "tags"}},
