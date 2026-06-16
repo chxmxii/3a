@@ -1,0 +1,11 @@
+# Build output
+bin/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out

@@ -1,0 +1,5 @@
+bin/
+.kiro/
+.git/
+*.db
+3a-reports/
