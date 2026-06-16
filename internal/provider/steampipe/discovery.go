@@ -13,11 +13,12 @@ import (
 
 // tableMapping maps a Steampipe table name to the internal ResourceType.
 type tableMapping struct {
-	Table        string
-	ResourceType provider.ResourceType
-	IDColumn     string // column used as resource ID (arn, id, etc.)
-	NameColumn   string // column used as display name
-	RegionColumn string // column for region (empty for global)
+	Table           string
+	ResourceType    provider.ResourceType
+	IDColumn        string   // column used as resource ID (arn, id, etc.)
+	NameColumn      string   // column used as display name
+	RegionColumn    string   // column for region (empty for global)
+	FallbackColumns []string // minimal columns to query when SELECT * fails (nil = no fallback)
 }
 
 // SteampipeDiscoverer queries Steampipe tables to discover cloud resources.
@@ -56,11 +57,64 @@ func (d *SteampipeDiscoverer) DiscoverResources(ctx context.Context, regions []s
 }
 
 // queryTable runs SELECT * against a Steampipe table and converts rows to DiscoveredResource.
+// If SELECT * fails and FallbackColumns are defined, retries with only those columns.
 func (d *SteampipeDiscoverer) queryTable(ctx context.Context, mapping tableMapping, results chan<- provider.DiscoveredResource) error {
 	query := fmt.Sprintf("SELECT * FROM %s", mapping.Table)
 	rows, err := d.pool.Query(ctx, query)
 	if err != nil {
+		// Try fallback with minimal columns if available.
+		if mapping.FallbackColumns != nil {
+			return d.queryTableFallback(ctx, mapping, results)
+		}
 		return fmt.Errorf("querying %s: %w", mapping.Table, err)
+	}
+	defer rows.Close()
+
+	fieldDescs := rows.FieldDescriptions()
+	colNames := make([]string, len(fieldDescs))
+	for i, fd := range fieldDescs {
+		colNames[i] = string(fd.Name)
+	}
+
+	count := 0
+	for rows.Next() {
+		values, err := rows.Values()
+		if err != nil {
+			// Row-level errors — skip silently.
+			continue
+		}
+
+		// Build a metadata map from all columns.
+		metadata := make(map[string]any, len(colNames))
+		for i, col := range colNames {
+			metadata[col] = values[i]
+		}
+
+		res := d.buildResource(mapping, metadata)
+		if res != nil {
+			results <- *res
+			count++
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		// If we got zero rows due to an error, try fallback.
+		if count == 0 && mapping.FallbackColumns != nil {
+			return d.queryTableFallback(ctx, mapping, results)
+		}
+		return err
+	}
+
+	return nil
+}
+
+// queryTableFallback queries only the minimal columns needed for inventory.
+func (d *SteampipeDiscoverer) queryTableFallback(ctx context.Context, mapping tableMapping, results chan<- provider.DiscoveredResource) error {
+	cols := strings.Join(mapping.FallbackColumns, ", ")
+	query := fmt.Sprintf("SELECT %s FROM %s", cols, mapping.Table)
+	rows, err := d.pool.Query(ctx, query)
+	if err != nil {
+		return fmt.Errorf("fallback query %s: %w", mapping.Table, err)
 	}
 	defer rows.Close()
 
@@ -73,61 +127,66 @@ func (d *SteampipeDiscoverer) queryTable(ctx context.Context, mapping tableMappi
 	for rows.Next() {
 		values, err := rows.Values()
 		if err != nil {
-			// Row-level errors (e.g., permission denied on a specific resource) — skip silently.
 			continue
 		}
 
-		// Build a metadata map from all columns.
 		metadata := make(map[string]any, len(colNames))
 		for i, col := range colNames {
 			metadata[col] = values[i]
 		}
 
-		// Extract resource ID.
-		resourceID := getStringFromMap(metadata, mapping.IDColumn)
-		if resourceID == "" {
-			// Try fallback columns.
-			for _, col := range []string{"arn", "id", "resource_id"} {
-				resourceID = getStringFromMap(metadata, col)
-				if resourceID != "" {
-					break
-				}
-			}
-		}
-		if resourceID == "" {
-			continue // Skip resources without an identifier.
-		}
-
-		// Extract name.
-		name := getStringFromMap(metadata, mapping.NameColumn)
-		if name == "" {
-			name = getStringFromMap(metadata, "title")
-		}
-
-		// Extract region.
-		region := getStringFromMap(metadata, mapping.RegionColumn)
-		if region == "" {
-			region = getStringFromMap(metadata, "region")
-		}
-		if region == "" {
-			region = "global"
-		}
-
-		// Extract tags.
-		tags := extractTags(metadata)
-
-		results <- provider.DiscoveredResource{
-			ProviderType: d.providerType,
-			ResourceType: mapping.ResourceType,
-			ResourceID:   resourceID,
-			Region:       region,
-			Name:         name,
-			Tags:         tags,
-			RawMetadata:  metadata,
+		res := d.buildResource(mapping, metadata)
+		if res != nil {
+			results <- *res
 		}
 	}
 
 	return rows.Err()
+}
+
+// buildResource converts a metadata map into a DiscoveredResource.
+func (d *SteampipeDiscoverer) buildResource(mapping tableMapping, metadata map[string]any) *provider.DiscoveredResource {
+	// Extract resource ID.
+	resourceID := getStringFromMap(metadata, mapping.IDColumn)
+	if resourceID == "" {
+		for _, col := range []string{"arn", "id", "resource_id"} {
+			resourceID = getStringFromMap(metadata, col)
+			if resourceID != "" {
+				break
+			}
+		}
+	}
+	if resourceID == "" {
+		return nil
+	}
+
+	// Extract name.
+	name := getStringFromMap(metadata, mapping.NameColumn)
+	if name == "" {
+		name = getStringFromMap(metadata, "title")
+	}
+
+	// Extract region.
+	region := getStringFromMap(metadata, mapping.RegionColumn)
+	if region == "" {
+		region = getStringFromMap(metadata, "region")
+	}
+	if region == "" {
+		region = "global"
+	}
+
+	// Extract tags.
+	tags := extractTags(metadata)
+
+	return &provider.DiscoveredResource{
+		ProviderType: d.providerType,
+		ResourceType: mapping.ResourceType,
+		ResourceID:   resourceID,
+		Region:       region,
+		Name:         name,
+		Tags:         tags,
+		RawMetadata:  metadata,
+	}
 }
 
 // tableMappings returns the table-to-resource-type mappings for the configured provider.
@@ -147,23 +206,23 @@ func awsTableMappings() []tableMapping {
 		{Table: "aws_vpc_nat_gateway", ResourceType: provider.ResourceTypeNATGW, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_ec2_transit_gateway", ResourceType: provider.ResourceTypeTGW, IDColumn: "transit_gateway_arn", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_vpc_security_group", ResourceType: provider.ResourceTypeSecurityGroup, IDColumn: "arn", NameColumn: "group_name", RegionColumn: "region"},
-		{Table: "aws_ec2_instance", ResourceType: provider.ResourceTypeEC2Instance, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
+		{Table: "aws_ec2_instance", ResourceType: provider.ResourceTypeEC2Instance, IDColumn: "arn", NameColumn: "title", RegionColumn: "region", FallbackColumns: []string{"arn", "instance_id", "instance_type", "instance_state", "region", "title", "tags", "vpc_id", "subnet_id", "private_ip_address", "public_ip_address"}},
 		{Table: "aws_eks_cluster", ResourceType: provider.ResourceTypeEKSCluster, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
 		{Table: "aws_ecs_cluster", ResourceType: provider.ResourceTypeECSCluster, IDColumn: "cluster_arn", NameColumn: "cluster_name", RegionColumn: "region"},
-		{Table: "aws_lambda_function", ResourceType: provider.ResourceTypeLambda, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
+		{Table: "aws_lambda_function", ResourceType: provider.ResourceTypeLambda, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "runtime", "handler", "memory_size", "timeout", "region", "tags"}},
 		{Table: "aws_rds_db_instance", ResourceType: provider.ResourceTypeRDS, IDColumn: "arn", NameColumn: "db_instance_identifier", RegionColumn: "region"},
-		{Table: "aws_s3_bucket", ResourceType: provider.ResourceTypeS3Bucket, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
-		{Table: "aws_iam_user", ResourceType: provider.ResourceTypeIAMUser, IDColumn: "arn", NameColumn: "name", RegionColumn: ""},
-		{Table: "aws_iam_role", ResourceType: provider.ResourceTypeIAMRole, IDColumn: "arn", NameColumn: "name", RegionColumn: ""},
-		{Table: "aws_iam_policy", ResourceType: provider.ResourceTypeIAMPolicy, IDColumn: "arn", NameColumn: "name", RegionColumn: ""},
-		{Table: "aws_ec2_application_load_balancer", ResourceType: provider.ResourceTypeALB, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
-		{Table: "aws_ec2_network_load_balancer", ResourceType: provider.ResourceTypeNLB, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
+		{Table: "aws_s3_bucket", ResourceType: provider.ResourceTypeS3Bucket, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "region", "creation_date", "tags"}},
+		{Table: "aws_iam_user", ResourceType: provider.ResourceTypeIAMUser, IDColumn: "arn", NameColumn: "name", RegionColumn: "", FallbackColumns: []string{"arn", "name", "user_id", "create_date", "tags"}},
+		{Table: "aws_iam_role", ResourceType: provider.ResourceTypeIAMRole, IDColumn: "arn", NameColumn: "name", RegionColumn: "", FallbackColumns: []string{"arn", "name", "role_id", "create_date", "tags"}},
+		{Table: "aws_iam_policy", ResourceType: provider.ResourceTypeIAMPolicy, IDColumn: "arn", NameColumn: "name", RegionColumn: "", FallbackColumns: []string{"arn", "name", "policy_id", "is_aws_managed"}},
+		{Table: "aws_ec2_application_load_balancer", ResourceType: provider.ResourceTypeALB, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "dns_name", "scheme", "type", "state_code", "region", "vpc_id"}},
+		{Table: "aws_ec2_network_load_balancer", ResourceType: provider.ResourceTypeNLB, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "dns_name", "scheme", "type", "state_code", "region", "vpc_id"}},
 		{Table: "aws_route53_zone", ResourceType: provider.ResourceTypeRoute53Zone, IDColumn: "id", NameColumn: "name", RegionColumn: ""},
-		{Table: "aws_kms_key", ResourceType: provider.ResourceTypeKMSKey, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
-		{Table: "aws_secretsmanager_secret", ResourceType: provider.ResourceTypeSecret, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
+		{Table: "aws_kms_key", ResourceType: provider.ResourceTypeKMSKey, IDColumn: "arn", NameColumn: "title", RegionColumn: "region", FallbackColumns: []string{"arn", "id", "title", "key_manager", "key_state", "region"}},
+		{Table: "aws_secretsmanager_secret", ResourceType: provider.ResourceTypeSecret, IDColumn: "arn", NameColumn: "name", RegionColumn: "region", FallbackColumns: []string{"arn", "name", "region", "tags"}},
 		{Table: "aws_ebs_volume", ResourceType: provider.ResourceTypeEBSVolume, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_eks_node_group", ResourceType: provider.ResourceTypeEKSNodeGroup, IDColumn: "arn", NameColumn: "nodegroup_name", RegionColumn: "region"},
-		{Table: "aws_ec2_target_group", ResourceType: provider.ResourceTypeTargetGroup, IDColumn: "target_group_arn", NameColumn: "target_group_name", RegionColumn: "region"},
+		{Table: "aws_ec2_target_group", ResourceType: provider.ResourceTypeTargetGroup, IDColumn: "target_group_arn", NameColumn: "target_group_name", RegionColumn: "region", FallbackColumns: []string{"target_group_arn", "target_group_name", "protocol", "port", "vpc_id", "region"}},
 	}
 }
 
