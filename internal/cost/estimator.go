@@ -122,6 +122,9 @@ func (e *Estimator) estimateEC2(res storage.Resource, category string) *storage.
 	if instanceType == "" {
 		instanceType = getStr(res.RawMetadata, "instanceType")
 	}
+	if instanceType == "" {
+		instanceType = getStr(res.RawMetadata, "instance_type_name")
+	}
 
 	est := &storage.CostEstimate{
 		ResourceID:   res.ResourceID,
@@ -138,9 +141,17 @@ func (e *Estimator) estimateEC2(res storage.Resource, category string) *storage.
 		est.IdleFlag = true
 	}
 
+	if instanceType == "" {
+		est.Unestimable = true
+		return est
+	}
+
 	hourly, ok := pricingCatalog[instanceType]
 	if !ok {
+		// Try without dot suffix variations (e.g., "m5.large" vs "m5large").
 		est.Unestimable = true
+		conf := "low"
+		est.Confidence = &conf
 		return est
 	}
 
