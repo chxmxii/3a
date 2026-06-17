@@ -251,11 +251,11 @@ func awsTableMappings() []tableMapping {
 	return []tableMapping{
 		{Table: "aws_vpc", ResourceType: provider.ResourceTypeVPC, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_vpc_subnet", ResourceType: provider.ResourceTypeSubnet, IDColumn: "subnet_arn", NameColumn: "title", RegionColumn: "region"},
-		{Table: "aws_vpc_route_table", ResourceType: provider.ResourceTypeRouteTable, IDColumn: "route_table_id", NameColumn: "title", RegionColumn: "region"},
+		{Table: "aws_vpc_route_table", ResourceType: provider.ResourceTypeRouteTable, IDColumn: "route_table_id", NameColumn: "title", RegionColumn: "region", FallbackColumns: []string{"route_table_id", "vpc_id", "title", "routes", "associations", "region", "tags"}},
 		{Table: "aws_vpc_internet_gateway", ResourceType: provider.ResourceTypeIGW, IDColumn: "internet_gateway_id", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_vpc_nat_gateway", ResourceType: provider.ResourceTypeNATGW, IDColumn: "arn", NameColumn: "title", RegionColumn: "region"},
 		{Table: "aws_ec2_transit_gateway", ResourceType: provider.ResourceTypeTGW, IDColumn: "transit_gateway_arn", NameColumn: "title", RegionColumn: "region"},
-		{Table: "aws_vpc_security_group", ResourceType: provider.ResourceTypeSecurityGroup, IDColumn: "arn", NameColumn: "group_name", RegionColumn: "region"},
+		{Table: "aws_vpc_security_group", ResourceType: provider.ResourceTypeSecurityGroup, IDColumn: "arn", NameColumn: "group_name", RegionColumn: "region", FallbackColumns: []string{"arn", "group_id", "group_name", "description", "vpc_id", "ip_permissions", "ip_permissions_egress", "region", "tags"}},
 		{Table: "aws_ec2_instance", ResourceType: provider.ResourceTypeEC2Instance, IDColumn: "arn", NameColumn: "title", RegionColumn: "region", FallbackColumns: []string{"arn", "instance_id", "instance_type", "instance_state", "region", "title", "tags", "vpc_id", "subnet_id", "private_ip_address", "public_ip_address"}},
 		{Table: "aws_eks_cluster", ResourceType: provider.ResourceTypeEKSCluster, IDColumn: "arn", NameColumn: "name", RegionColumn: "region"},
 		{Table: "aws_ecs_cluster", ResourceType: provider.ResourceTypeECSCluster, IDColumn: "cluster_arn", NameColumn: "cluster_name", RegionColumn: "region"},

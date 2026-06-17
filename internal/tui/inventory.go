@@ -274,6 +274,8 @@ func (v *inventoryView) buildDetailLines(r *storage.Resource, width int) []strin
 		return v.buildSGDetail(r, width)
 	case "iam_policy":
 		return v.buildPolicyDetail(r, width)
+	case "route_table":
+		return v.buildRouteTableDetail(r, width)
 	default:
 		return v.buildGenericDetail(r, width)
 	}
@@ -532,6 +534,89 @@ func extractStringList(m map[string]any, key string) []string {
 	default:
 		return []string{fmt.Sprintf("%v", v)}
 	}
+}
+
+func (v *inventoryView) buildRouteTableDetail(r *storage.Resource, width int) []string {
+	var lines []string
+	meta := r.RawMetadata
+
+	lines = append(lines, titleStyle.Render(fmt.Sprintf("  Route Table: %s", r.Name)))
+	lines = append(lines, "")
+
+	// Basic info.
+	lines = append(lines, headerStyle.Render("  ┌─ Info"))
+	lines = append(lines, fmt.Sprintf("  │ Route Table ID: %s", getDetailStr(meta, "route_table_id")))
+	lines = append(lines, fmt.Sprintf("  │ VPC:            %s", getDetailStr(meta, "vpc_id")))
+	lines = append(lines, fmt.Sprintf("  │ Region:         %s", r.Region))
+	lines = append(lines, "  └─")
+	lines = append(lines, "")
+
+	// Routes.
+	lines = append(lines, headerStyle.Render("  ┌─ Routes"))
+	lines = append(lines, fmt.Sprintf("  │ %-20s %-30s %-10s", "DESTINATION", "TARGET", "STATE"))
+	lines = append(lines, "  │ "+strings.Repeat("─", 65))
+
+	routes, _ := meta["routes"].([]any)
+	if len(routes) == 0 {
+		lines = append(lines, "  │ (no routes found — may require additional permissions)")
+	}
+	for _, route := range routes {
+		routeMap, ok := route.(map[string]any)
+		if !ok {
+			continue
+		}
+		dest := getDetailStr(routeMap, "destination_cidr_block")
+		if dest == "" {
+			dest = getDetailStr(routeMap, "destination_ipv6_cidr_block")
+		}
+		if dest == "" {
+			dest = getDetailStr(routeMap, "destination_prefix_list_id")
+		}
+
+		target := ""
+		for _, field := range []string{"gateway_id", "nat_gateway_id", "instance_id", "transit_gateway_id", "vpc_peering_connection_id", "network_interface_id", "local_gateway_id"} {
+			t := getDetailStr(routeMap, field)
+			if t != "" {
+				target = t
+				break
+			}
+		}
+		if target == "" {
+			target = "local"
+		}
+
+		state := getDetailStr(routeMap, "state")
+		if state == "" {
+			state = "active"
+		}
+
+		lines = append(lines, fmt.Sprintf("  │ %-20s %-30s %-10s", dest, target, state))
+	}
+	lines = append(lines, "  └─")
+	lines = append(lines, "")
+
+	// Associations.
+	lines = append(lines, headerStyle.Render("  ┌─ Associations"))
+	assocs, _ := meta["associations"].([]any)
+	if len(assocs) == 0 {
+		lines = append(lines, "  │ (none)")
+	}
+	for _, assoc := range assocs {
+		assocMap, ok := assoc.(map[string]any)
+		if !ok {
+			continue
+		}
+		subnetID := getDetailStr(assocMap, "subnet_id")
+		main, _ := assocMap["main"].(bool)
+		if main {
+			lines = append(lines, "  │ Main route table (implicit association)")
+		} else if subnetID != "" {
+			lines = append(lines, fmt.Sprintf("  │ Subnet: %s", subnetID))
+		}
+	}
+	lines = append(lines, "  └─")
+
+	return lines
 }
 
 func (v *inventoryView) buildGenericDetail(r *storage.Resource, width int) []string {
