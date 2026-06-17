@@ -165,12 +165,12 @@ func runAssessment(profileName, connString string, noTUI bool) error {
 
 	// Header.
 	fmt.Println()
-	fmt.Println(accentStyle.Render("   _____ _____ "))
-	fmt.Println(accentStyle.Render("  |____ |  _  |"))
-	fmt.Println(accentStyle.Render("      / / |_| |"))
-	fmt.Println(accentStyle.Render("      \\ \\__  _|"))
-	fmt.Println(accentStyle.Render("  .___/ / | |  "))
-	fmt.Println(accentStyle.Render("  \\____/  \\_/  "))
+	fmt.Println(accentStyle.Render("    _____  ___     "))
+	fmt.Println(accentStyle.Render("   |____ |/ _ \\   "))
+	fmt.Println(accentStyle.Render("       / / /_\\ \\ "))
+	fmt.Println(accentStyle.Render("       \\ \\  _  | "))
+	fmt.Println(accentStyle.Render("   .___/ / | | |   "))
+	fmt.Println(accentStyle.Render("   \\____/\\_| |_/ "))
 	fmt.Println()
 	fmt.Printf("  %s\n", dimStyle.Render("Agnostic Account Assessment"))
 	fmt.Printf("  %s\n\n", dimStyle.Render(fmt.Sprintf("Profile: %s | Provider: %s | ID: %s", profileName, profile.Provider, assessmentID[:8])))
