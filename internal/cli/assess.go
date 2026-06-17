@@ -165,11 +165,18 @@ func runAssessment(profileName, connString string, noTUI bool) error {
 
 	// Header.
 	fmt.Println()
-	fmt.Printf("  %s\n", accentStyle.Render("━━━ 3A — Agnostic Account Assessment ━━━"))
-	fmt.Printf("  %s\n\n", dimStyle.Render(fmt.Sprintf("Profile: %s  Provider: %s  ID: %s", profileName, profile.Provider, assessmentID[:8])))
+	fmt.Println(accentStyle.Render("   _____ _____ "))
+	fmt.Println(accentStyle.Render("  |____ |  _  |"))
+	fmt.Println(accentStyle.Render("      / / |_| |"))
+	fmt.Println(accentStyle.Render("      \\ \\__  _|"))
+	fmt.Println(accentStyle.Render("  .___/ / | |  "))
+	fmt.Println(accentStyle.Render("  \\____/  \\_/  "))
+	fmt.Println()
+	fmt.Printf("  %s\n", dimStyle.Render("Agnostic Account Assessment"))
+	fmt.Printf("  %s\n\n", dimStyle.Render(fmt.Sprintf("Profile: %s | Provider: %s | ID: %s", profileName, profile.Provider, assessmentID[:8])))
 
-	// Step 1: Connect.
-	sp1 := newSpinner("Connecting to Steampipe...")
+	// Step 1: Connect and validate.
+	sp1 := newSpinner("Connecting to Steampipe and validating credentials...")
 	sp, err := steampipe.NewSteampipeProvider(connString, profile.Provider)
 	if err != nil {
 		sp1.fail("Connection failed")
@@ -180,18 +187,14 @@ func runAssessment(profileName, connString string, noTUI bool) error {
 		sp1.fail("Connection failed")
 		return fmt.Errorf("connecting to steampipe: %w", err)
 	}
-	sp1.succeed("Connected to Steampipe")
-
-	// Step 2: Validate.
-	sp2 := newSpinner("Validating credentials...")
 	if err := sp.ValidateProfile(ctx); err != nil {
-		sp2.fail("Validation failed")
+		sp1.fail("Validation failed")
 		_ = store.UpdateAssessmentStatus(assessmentID, "failed", nil)
 		return fmt.Errorf("profile validation failed:\n\n%w", err)
 	}
-	sp2.succeed("Credentials validated")
+	sp1.succeed("Connected and validated")
 
-	// Step 3: Discover.
+	// Step 2: Discover.
 	sp3 := newSpinner("Discovering resources (this may take a moment)...")
 	engine := discovery.NewEngine(sp, store)
 	summary, err := engine.Run(ctx, assessmentID, profile.Regions)
