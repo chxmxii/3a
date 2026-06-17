@@ -26,8 +26,9 @@ type SteampipeConfig struct {
 type AccountProfile struct {
 	Name        string   `yaml:"name"`
 	DisplayName string   `yaml:"display_name,omitempty"`
-	Provider    string   `yaml:"provider"`          // "aws" or "oci"
-	AwsProfile  string   `yaml:"aws_profile,omitempty"` // AWS credentials profile name (used by Steampipe)
+	Provider    string   `yaml:"provider"`              // "aws" or "oci"
+	AwsProfile  string   `yaml:"aws_profile,omitempty"` // AWS credentials profile name
+	OciProfile  string   `yaml:"oci_profile,omitempty"` // OCI config profile name (from ~/.oci/config)
 	Regions     []string `yaml:"regions,omitempty"`
 }
 

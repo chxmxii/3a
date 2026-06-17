@@ -37,18 +37,20 @@ func newProfilesListCmd() *cobra.Command {
 				return nil
 			}
 
-			fmt.Printf("%-20s %-10s %-15s %-30s\n", "NAME", "PROVIDER", "AWS PROFILE", "REGIONS")
-			fmt.Printf("%-20s %-10s %-15s %-30s\n", "----", "--------", "-----------", "-------")
+			fmt.Printf("%-20s %-10s %-15s %-30s\n", "NAME", "PROVIDER", "PROFILE", "REGIONS")
+			fmt.Printf("%-20s %-10s %-15s %-30s\n", "----", "--------", "-------", "-------")
 			for _, p := range profiles {
 				regions := "all"
 				if len(p.Regions) > 0 {
 					regions = fmt.Sprintf("%v", p.Regions)
 				}
-				awsProf := "-"
+				prof := "-"
 				if p.AwsProfile != "" {
-					awsProf = p.AwsProfile
+					prof = p.AwsProfile
+				} else if p.OciProfile != "" {
+					prof = p.OciProfile
 				}
-				fmt.Printf("%-20s %-10s %-15s %-30s\n", p.Name, p.Provider, awsProf, regions)
+				fmt.Printf("%-20s %-10s %-15s %-30s\n", p.Name, p.Provider, prof, regions)
 			}
 			return nil
 		},
@@ -60,6 +62,7 @@ func newProfilesAddCmd() *cobra.Command {
 	var regions []string
 	var displayName string
 	var awsProfile string
+	var ociProfile string
 
 	cmd := &cobra.Command{
 		Use:   "add <name>",
@@ -98,6 +101,7 @@ func newProfilesAddCmd() *cobra.Command {
 				DisplayName: displayName,
 				Provider:    provider,
 				AwsProfile:  awsProfile,
+				OciProfile:  ociProfile,
 				Regions:     regions,
 			}
 
@@ -110,8 +114,11 @@ func newProfilesAddCmd() *cobra.Command {
 			fmt.Printf("Profile %q added successfully.\n", name)
 			if awsProfile != "" {
 				fmt.Printf("  AWS credentials profile: %s\n", awsProfile)
-				fmt.Printf("  Note: Ensure Steampipe's aws.spc uses the same profile.\n")
 			}
+			if ociProfile != "" {
+				fmt.Printf("  OCI config profile: %s\n", ociProfile)
+			}
+			fmt.Printf("  Note: Ensure Steampipe's connection config uses the same profile.\n")
 			return nil
 		},
 	}
@@ -120,6 +127,7 @@ func newProfilesAddCmd() *cobra.Command {
 	cmd.Flags().StringSliceVar(&regions, "regions", []string{"us-east-1"}, "regions to assess")
 	cmd.Flags().StringVar(&displayName, "display-name", "", "display name for the profile")
 	cmd.Flags().StringVar(&awsProfile, "aws-profile", "", "AWS credentials profile name (from ~/.aws/credentials)")
+	cmd.Flags().StringVar(&ociProfile, "oci-profile", "", "OCI config profile name (from ~/.oci/config)")
 
 	return cmd
 }
