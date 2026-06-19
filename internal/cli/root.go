@@ -19,6 +19,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(newAssessCmd())
 	rootCmd.AddCommand(newProfilesCmd())
 	rootCmd.AddCommand(newReportCmd())
+	rootCmd.AddCommand(newConfigureCmd())
 
 	return rootCmd
 }
