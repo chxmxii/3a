@@ -19,13 +19,13 @@ Currently supports AWS and OCI via Steampipe.
 One-line install (Linux and macOS):
 
 ```bash
-curl -fsSL https://chxmxii.github.io/3a/install.sh | bash
+curl -fsSL https://chxmxii.github.io/a3/install.sh | bash
 ```
 
 Using Go:
 
 ```bash
-go install github.com/chxmxii/3a/cmd/3a@latest
+go install github.com/chxmxii/a3/cmd/a3@latest
 ```
 
 Using Docker/Podman:
@@ -38,9 +38,9 @@ docker run --rm -v ~/.aws:/root/.aws -v ~/.a3:/root/.a3 ghcr.io/chxmxii/a3 asses
 From source:
 
 ```bash
-git clone https://github.com/chxmxii/3a.git
-cd 3a
-go build -o bin/a3 ./cmd/3a/ 
+git clone https://github.com/chxmxii/a3.git
+cd a3
+go build -o bin/a3 ./cmd/a3/ 
 sudo cp bin/a3 /usr/local/bin/
 ```
 
