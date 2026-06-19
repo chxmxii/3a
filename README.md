@@ -2,7 +2,7 @@
   <img src="docs/assets/logo.png" alt="3A" width="180">
 </p>
 
-# 3A — Agnostic Account Assessment
+# 3A / Agnostic Account Assessment
 
 Terminal-based cloud account assessment tool. Discovers resources, maps architecture, evaluates security posture, estimates costs, and generates reports.
 
