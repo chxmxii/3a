@@ -313,13 +313,17 @@ func (v *inventoryView) buildSGDetail(r *storage.Resource, width int) []string {
 			continue
 		}
 		proto := getDetailStr(permMap, "ip_protocol")
+		if proto == "" {
+			proto = getDetailStr(permMap, "IpProtocol")
+		}
 		if proto == "-1" {
 			proto = "ALL"
 		}
-		fromPort, _ := permMap["from_port"].(float64)
-		toPort, _ := permMap["to_port"].(float64)
+
+		fromPort := getFloat(permMap, "from_port", "FromPort")
+		toPort := getFloat(permMap, "to_port", "ToPort")
 		portRange := "ALL"
-		if proto != "ALL" {
+		if proto != "ALL" && fromPort >= 0 {
 			if fromPort == toPort {
 				portRange = fmt.Sprintf("%.0f", fromPort)
 			} else {
@@ -328,14 +332,20 @@ func (v *inventoryView) buildSGDetail(r *storage.Resource, width int) []string {
 		}
 
 		// IP ranges.
-		ipRanges, _ := permMap["ip_ranges"].([]any)
+		ipRanges := getSlice(permMap, "ip_ranges", "IpRanges")
 		for _, ipr := range ipRanges {
 			iprMap, ok := ipr.(map[string]any)
 			if !ok {
 				continue
 			}
 			cidr := getDetailStr(iprMap, "cidr_ip")
+			if cidr == "" {
+				cidr = getDetailStr(iprMap, "CidrIp")
+			}
 			desc := getDetailStr(iprMap, "description")
+			if desc == "" {
+				desc = getDetailStr(iprMap, "Description")
+			}
 			style := normalStyle
 			if cidr == "0.0.0.0/0" || cidr == "::/0" {
 				style = severityHighStyle
@@ -344,15 +354,26 @@ func (v *inventoryView) buildSGDetail(r *storage.Resource, width int) []string {
 		}
 
 		// Security group references.
-		sgRefs, _ := permMap["user_id_group_pairs"].([]any)
+		sgRefs := getSlice(permMap, "user_id_group_pairs", "UserIdGroupPairs")
 		for _, sgr := range sgRefs {
 			sgrMap, ok := sgr.(map[string]any)
 			if !ok {
 				continue
 			}
 			sgID := getDetailStr(sgrMap, "group_id")
+			if sgID == "" {
+				sgID = getDetailStr(sgrMap, "GroupId")
+			}
 			desc := getDetailStr(sgrMap, "description")
+			if desc == "" {
+				desc = getDetailStr(sgrMap, "Description")
+			}
 			lines = append(lines, fmt.Sprintf("  │ %-10s %-12s %-22s %s", proto, portRange, "sg:"+sgID, desc))
+		}
+
+		// If no ranges or refs matched, show the rule anyway.
+		if len(ipRanges) == 0 && len(sgRefs) == 0 {
+			lines = append(lines, fmt.Sprintf("  │ %-10s %-12s %-22s", proto, portRange, "(self/all)"))
 		}
 	}
 	lines = append(lines, "  └─")
@@ -373,13 +394,16 @@ func (v *inventoryView) buildSGDetail(r *storage.Resource, width int) []string {
 			continue
 		}
 		proto := getDetailStr(permMap, "ip_protocol")
+		if proto == "" {
+			proto = getDetailStr(permMap, "IpProtocol")
+		}
 		if proto == "-1" {
 			proto = "ALL"
 		}
-		fromPort, _ := permMap["from_port"].(float64)
-		toPort, _ := permMap["to_port"].(float64)
+		fromPort := getFloat(permMap, "from_port", "FromPort")
+		toPort := getFloat(permMap, "to_port", "ToPort")
 		portRange := "ALL"
-		if proto != "ALL" {
+		if proto != "ALL" && fromPort >= 0 {
 			if fromPort == toPort {
 				portRange = fmt.Sprintf("%.0f", fromPort)
 			} else {
@@ -387,15 +411,25 @@ func (v *inventoryView) buildSGDetail(r *storage.Resource, width int) []string {
 			}
 		}
 
-		ipRanges, _ := permMap["ip_ranges"].([]any)
+		ipRanges := getSlice(permMap, "ip_ranges", "IpRanges")
 		for _, ipr := range ipRanges {
 			iprMap, ok := ipr.(map[string]any)
 			if !ok {
 				continue
 			}
 			cidr := getDetailStr(iprMap, "cidr_ip")
+			if cidr == "" {
+				cidr = getDetailStr(iprMap, "CidrIp")
+			}
 			desc := getDetailStr(iprMap, "description")
+			if desc == "" {
+				desc = getDetailStr(iprMap, "Description")
+			}
 			lines = append(lines, fmt.Sprintf("  │ %-10s %-12s %-22s %s", proto, portRange, cidr, desc))
+		}
+
+		if len(ipRanges) == 0 {
+			lines = append(lines, fmt.Sprintf("  │ %-10s %-12s %-22s", proto, portRange, "(all)"))
 		}
 	}
 	lines = append(lines, "  └─")
@@ -567,16 +601,19 @@ func (v *inventoryView) buildRouteTableDetail(r *storage.Resource, width int) []
 		}
 		dest := getDetailStr(routeMap, "destination_cidr_block")
 		if dest == "" {
+			dest = getDetailStr(routeMap, "DestinationCidrBlock")
+		}
+		if dest == "" {
 			dest = getDetailStr(routeMap, "destination_ipv6_cidr_block")
 		}
 		if dest == "" {
-			dest = getDetailStr(routeMap, "destination_prefix_list_id")
+			dest = getDetailStr(routeMap, "DestinationIpv6CidrBlock")
 		}
 
 		target := ""
-		for _, field := range []string{"gateway_id", "nat_gateway_id", "instance_id", "transit_gateway_id", "vpc_peering_connection_id", "network_interface_id", "local_gateway_id"} {
+		for _, field := range []string{"gateway_id", "GatewayId", "nat_gateway_id", "NatGatewayId", "instance_id", "InstanceId", "transit_gateway_id", "TransitGatewayId", "vpc_peering_connection_id", "VpcPeeringConnectionId", "network_interface_id", "NetworkInterfaceId"} {
 			t := getDetailStr(routeMap, field)
-			if t != "" {
+			if t != "" && t != "<nil>" {
 				target = t
 				break
 			}
@@ -586,6 +623,9 @@ func (v *inventoryView) buildRouteTableDetail(r *storage.Resource, width int) []
 		}
 
 		state := getDetailStr(routeMap, "state")
+		if state == "" {
+			state = getDetailStr(routeMap, "State")
+		}
 		if state == "" {
 			state = "active"
 		}
@@ -686,6 +726,37 @@ func getDetailStr(m map[string]any, key string) string {
 		return s
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+func getFloat(m map[string]any, keys ...string) float64 {
+	for _, key := range keys {
+		v, ok := m[key]
+		if !ok || v == nil {
+			continue
+		}
+		switch f := v.(type) {
+		case float64:
+			return f
+		case int:
+			return float64(f)
+		case int64:
+			return float64(f)
+		}
+	}
+	return -1
+}
+
+func getSlice(m map[string]any, keys ...string) []any {
+	for _, key := range keys {
+		v, ok := m[key]
+		if !ok || v == nil {
+			continue
+		}
+		if s, ok := v.([]any); ok {
+			return s
+		}
+	}
+	return nil
 }
 
 func formatMetadataValue(val any, maxLen int) string {
