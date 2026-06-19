@@ -302,7 +302,7 @@ func (v *architectureView) buildNetworkLines(nameMap, typeMap map[string]string)
 			if subName == "" {
 				subName = sub.ResourceID
 			}
-			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, subConnector, normalStyle.Render("[subnet]"), subName))
+			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, subConnector, colorType("subnet"), subName))
 
 			// Route tables and EC2 in this subnet.
 			var subChildren []storage.Resource
@@ -327,7 +327,7 @@ func (v *architectureView) buildNetworkLines(nameMap, typeMap map[string]string)
 				if scName == "" {
 					scName = sc.ResourceID
 				}
-				lines = append(lines, fmt.Sprintf("%s%s%s %s", subChildPrefix, scConnector, dimNavStyle.Render("["+sc.ResourceType+"]"), scName))
+				lines = append(lines, fmt.Sprintf("%s%s%s %s", subChildPrefix, scConnector, colorType(sc.ResourceType), scName))
 			}
 		}
 
@@ -343,7 +343,7 @@ func (v *architectureView) buildNetworkLines(nameMap, typeMap map[string]string)
 			if sgName == "" {
 				sgName = sg.ResourceID
 			}
-			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, sgConnector, dimNavStyle.Render("[security_group]"), sgName))
+			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, sgConnector, colorType("security_group"), sgName))
 		}
 
 		// Gateways.
@@ -358,7 +358,7 @@ func (v *architectureView) buildNetworkLines(nameMap, typeMap map[string]string)
 			if gwName == "" {
 				gwName = gw.ResourceID
 			}
-			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, gwConnector, dimNavStyle.Render("["+gw.ResourceType+"]"), gwName))
+			lines = append(lines, fmt.Sprintf("%s%s%s %s", vpcChildPrefix, gwConnector, colorType(gw.ResourceType), gwName))
 		}
 	}
 
@@ -444,7 +444,7 @@ func (v *architectureView) buildResourceTree(lines *[]string, resourceID, prefix
 		rType = "?"
 	}
 
-	line := fmt.Sprintf("%s%s%s %s", prefix, connector, normalStyle.Render("["+rType+"]"), name)
+	line := fmt.Sprintf("%s%s%s %s", prefix, connector, colorType(rType), name)
 	*lines = append(*lines, line)
 
 	children := childrenOf[resourceID]
@@ -464,4 +464,44 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// colorType returns a styled type label based on the resource type.
+func colorType(resType string) string {
+	switch resType {
+	case "vpc":
+		return titleStyle.Render("[vpc]")
+	case "subnet":
+		return regionBadgeStyle.Render("[subnet]")
+	case "route_table":
+		return dimNavStyle.Render("[route_table]")
+	case "security_group":
+		return severityMediumStyle.Render("[security_group]")
+	case "internet_gateway":
+		return routeIGWStyle.Render("[igw]")
+	case "nat_gateway":
+		return routeNATStyle.Render("[nat]")
+	case "transit_gateway":
+		return regionBadgeStyle.Render("[tgw]")
+	case "ec2_instance":
+		return passStyle.Render("[ec2]")
+	case "alb", "nlb":
+		return severityMediumStyle.Render("[" + resType + "]")
+	case "target_group":
+		return dimNavStyle.Render("[target_group]")
+	case "eks_cluster":
+		return titleStyle.Render("[eks]")
+	case "eks_node_group":
+		return regionBadgeStyle.Render("[node_group]")
+	case "ecs_cluster":
+		return titleStyle.Render("[ecs]")
+	case "lambda_function":
+		return routeNATStyle.Render("[lambda]")
+	case "rds_instance":
+		return severityHighStyle.Render("[rds]")
+	case "efs_file_system":
+		return routeLocalStyle.Render("[efs]")
+	default:
+		return normalStyle.Render("[" + resType + "]")
+	}
 }
