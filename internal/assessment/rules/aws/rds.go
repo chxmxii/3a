@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chxmxii/3a/internal/assessment"
-	"github.com/chxmxii/3a/internal/provider"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/assessment"
+	"github.com/chxmxii/a3/internal/provider"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // RDSNoMultiAZRule checks for RDS instances without Multi-AZ.

@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chxmxii/3a/internal/config"
+	"github.com/chxmxii/a3/internal/config"
 )
 
 func newProfilesCmd() *cobra.Command {

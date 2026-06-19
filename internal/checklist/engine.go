@@ -3,7 +3,7 @@ package checklist
 import (
 	"fmt"
 
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Engine generates a compliance checklist from assessment findings.

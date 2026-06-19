@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/chxmxii/3a/internal/provider"
+	"github.com/chxmxii/a3/internal/provider"
 )
 
 // tableMapping maps a Steampipe table name to the internal ResourceType.

@@ -3,7 +3,7 @@ package sizing
 import (
 	"log"
 
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Analyzer computes sizing information from discovered resources.

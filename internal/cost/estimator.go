@@ -4,7 +4,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Estimator calculates cost estimates for discovered resources.

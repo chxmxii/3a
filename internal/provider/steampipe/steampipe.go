@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/chxmxii/3a/internal/provider"
+	"github.com/chxmxii/a3/internal/provider"
 )
 
 // SteampipeProvider implements the provider.Provider interface using Steampipe's

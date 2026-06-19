@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/chxmxii/3a/internal/provider"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/provider"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Engine evaluates resources against compliance rules.

@@ -3,8 +3,8 @@ package assessment
 import (
 	"context"
 
-	"github.com/chxmxii/3a/internal/provider"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/provider"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Severity represents the impact level of a finding.

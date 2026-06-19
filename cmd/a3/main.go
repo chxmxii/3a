@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/chxmxii/3a/internal/cli"
+	"github.com/chxmxii/a3/internal/cli"
 )
 
 // Set via ldflags at build time.

@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chxmxii/3a/internal/config"
-	"github.com/chxmxii/3a/internal/report"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/config"
+	"github.com/chxmxii/a3/internal/report"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 func newReportCmd() *cobra.Command {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // View represents the currently active TUI view.

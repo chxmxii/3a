@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/chxmxii/3a/internal/assessment"
-	"github.com/chxmxii/3a/internal/provider"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/assessment"
+	"github.com/chxmxii/a3/internal/provider"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // AllRules returns all AWS assessment rules.

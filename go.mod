@@ -1,4 +1,4 @@
-module github.com/chxmxii/3a
+module github.com/chxmxii/a3
 
 go 1.25.0
 

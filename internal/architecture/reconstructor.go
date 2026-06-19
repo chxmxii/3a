@@ -3,7 +3,7 @@ package architecture
 import (
 	"log"
 
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // Reconstructor analyzes discovered resources and infers relationships between them.

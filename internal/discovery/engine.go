@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chxmxii/3a/internal/provider"
-	"github.com/chxmxii/3a/internal/storage"
+	"github.com/chxmxii/a3/internal/provider"
+	"github.com/chxmxii/a3/internal/storage"
 )
 
 // RetryConfig defines retry behavior for failed API calls.

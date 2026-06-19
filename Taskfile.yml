@@ -25,7 +25,7 @@ tasks:
     desc: Compile the a3 binary
     cmds:
       - mkdir -p {{.BUILD_DIR}}
-      - go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/{{.BINARY}} ./cmd/3a/
+      - go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/{{.BINARY}} ./cmd/a3/
     sources:
       - cmd/**/*.go
       - internal/**/*.go
@@ -37,7 +37,7 @@ tasks:
   install:
     desc: Install a3 to $GOPATH/bin (or /usr/local/bin)
     cmds:
-      - go install -ldflags "{{.LDFLAGS}}" ./cmd/3a/
+      - go install -ldflags "{{.LDFLAGS}}" ./cmd/a3/
     status:
       - which a3
 
@@ -94,10 +94,10 @@ tasks:
     desc: Build release binaries for linux/amd64 and linux/arm64
     cmds:
       - mkdir -p {{.BUILD_DIR}}/release
-      - GOOS=linux GOARCH=amd64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-linux-amd64 ./cmd/3a/
-      - GOOS=linux GOARCH=arm64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-linux-arm64 ./cmd/3a/
-      - GOOS=darwin GOARCH=amd64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-darwin-amd64 ./cmd/3a/
-      - GOOS=darwin GOARCH=arm64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-darwin-arm64 ./cmd/3a/
+      - GOOS=linux GOARCH=amd64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-linux-amd64 ./cmd/a3/
+      - GOOS=linux GOARCH=arm64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-linux-arm64 ./cmd/a3/
+      - GOOS=darwin GOARCH=amd64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-darwin-amd64 ./cmd/a3/
+      - GOOS=darwin GOARCH=arm64 go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/release/{{.BINARY}}-darwin-arm64 ./cmd/a3/
       - echo "Release binaries in {{.BUILD_DIR}}/release/"
 
   steampipe-check:
