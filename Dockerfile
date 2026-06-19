@@ -16,7 +16,7 @@ ARG BUILD_TIME=unknown
 
 RUN CGO_ENABLED=1 go build \
     -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildTime=${BUILD_TIME}" \
-    -o /bin/a3 ./cmd/3a/
+    -o /bin/a3 ./cmd/a3/
 
 # Runtime stage
 FROM alpine:3.20
