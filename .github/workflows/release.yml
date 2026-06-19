@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: 3a
+  IMAGE_NAME: a3
 
 permissions:
   contents: write
@@ -40,11 +40,11 @@ jobs:
             -X main.buildTime=${{ steps.info.outputs.build_time }}
         run: |
           mkdir -p dist
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/3a-linux-amd64 ./cmd/3a/
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc go build -ldflags "$LDFLAGS" -o dist/3a-linux-arm64 ./cmd/3a/ || \
-            GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -tags nosqlite3 -o dist/3a-linux-arm64 ./cmd/3a/ || true
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/3a-darwin-amd64 ./cmd/3a/ || true
-          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/3a-darwin-arm64 ./cmd/3a/ || true
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/a3-linux-amd64 ./cmd/3a/
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc go build -ldflags "$LDFLAGS" -o dist/a3-linux-arm64 ./cmd/3a/ || \
+            GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -tags nosqlite3 -o dist/a3-linux-arm64 ./cmd/3a/ || true
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/a3-darwin-amd64 ./cmd/3a/ || true
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/a3-darwin-arm64 ./cmd/3a/ || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

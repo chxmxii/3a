@@ -55,7 +55,7 @@ func runReport(profileName, format, output string) error {
 		return fmt.Errorf("querying assessments: %w", err)
 	}
 	if assessment == nil {
-		return fmt.Errorf("no assessments found for profile %q. Run '3a assess %s' first.", profileName, profileName)
+		return fmt.Errorf("no assessments found for profile %q. Run 'a3 assess %s' first.", profileName, profileName)
 	}
 
 	// Determine format.

@@ -31,8 +31,8 @@ go install github.com/chxmxii/3a/cmd/3a@latest
 Using Docker/Podman:
 
 ```bash
-docker pull ghcr.io/chxmxii/3a:latest
-docker run --rm -v ~/.aws:/root/.aws -v ~/.3a:/root/.3a ghcr.io/chxmxii/3a assess <profile>
+docker pull ghcr.io/chxmxii/a3:latest
+docker run --rm -v ~/.aws:/root/.aws -v ~/.a3:/root/.a3 ghcr.io/chxmxii/a3 assess <profile>
 ```
 
 From source:
@@ -40,30 +40,28 @@ From source:
 ```bash
 git clone https://github.com/chxmxii/3a.git
 cd 3a
-go build -o bin/3a ./cmd/3a/ 
-sudo cp bin/3a /usr/local/bin/
+go build -o bin/a3 ./cmd/3a/ 
+sudo cp bin/a3 /usr/local/bin/
 ```
 
 ## Usage
 
-```bash
+```sh
 # Setup Wizard
-3a configure
+a3 configure
 
 # Run a full assessment
-3a assess <profile-name>
+a3 assess <profile-name>
 
 # Run without TUI
-3a assess <profile-name> --no-tui
+a3 assess <profile-name> --no-tui
 
 # Generate reports
-3a report <profile-name> --format markdown
-3a report <profile-name> --format json
-3a report <profile-name> --format excel -o report.xlsx
+a3 report <profile-name> --format <markdown|json|excel> -o report.<md,json,xlsx>
 
 # Profile management
-3a profiles list
-3a profiles add production --provider aws --regions us-east-1,eu-west-1 --aws-profile prod-readonly
+a3 profiles list
+a3 profiles add production --provider aws --regions us-east-1,eu-west-1 --aws-profile prod-readonly
 ```
 
 ## What it does
@@ -92,10 +90,10 @@ sudo cp bin/3a /usr/local/bin/
 
 ## Configuration
 
-Profiles are stored in `~/.3a/config.yaml`:
+Profiles are stored in `~/.a3/config.yaml`:
 
 ```yaml
-db_path: ~/.3a/3a.db
+db_path: ~/.a3/a3.db
 steampipe:
   connection_string: postgres://steampipe@localhost:9193/steampipe
 profiles:
@@ -107,12 +105,12 @@ profiles:
       - eu-west-1
 ```
 
-Assessment data is stored in SQLite at `~/.3a/3a.db`.
+Assessment data is stored in SQLite at `~/.a3/a3.db`.
 
 ## Steampipe Setup
 
 ```bash
-steampipe plugin install aws
+steampipe plugin install <plugin>
 steampipe service start
 ```
 
@@ -126,7 +124,7 @@ connection "aws" {
 }
 ```
 
-Or use `3a configure` to set everything up with 3a wizard.
+Or use `a3 configure` to set everything up with a3 wizard.
 
 ## License
 

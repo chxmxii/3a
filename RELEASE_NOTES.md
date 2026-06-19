@@ -39,10 +39,10 @@ A terminal-first tool that assesses cloud accounts (AWS, OCI) using Steampipe. O
 - Auto-filters and formatted columns
 
 ### CLI
-- `3a assess <profile>` — full pipeline with animated progress
-- `3a configure` — interactive setup wizard (credentials, Steampipe config, regions)
-- `3a report <profile> --format excel` — generate reports without TUI
-- `3a profiles list/add` — profile management
+- `a3 assess <profile>` — full pipeline with animated progress
+- `a3 configure` — interactive setup wizard (credentials, Steampipe config, regions)
+- `a3 report <profile> --format excel` — generate reports without TUI
+- `a3 profiles list/add` — profile management
 
 ## Install
 

@@ -142,7 +142,7 @@ func runConfigure() error {
 		}
 	}
 
-	// Step 9: Write 3A profile to ~/.3a/config.yaml.
+	// Step 9: Write 3A profile to ~/.a3/config.yaml.
 	if err := write3AProfile(profileName, provider, awsProfile, regions); err != nil {
 		return fmt.Errorf("writing 3A config: %w", err)
 	}
@@ -159,9 +159,9 @@ func runConfigure() error {
 	fmt.Printf("  Regions:    %s\n", strings.Join(regions, ", "))
 	fmt.Println()
 	fmt.Printf("  Steampipe:  ~/.steampipe/config/aws.spc (connection \"aws_%s\")\n", profileName)
-	fmt.Printf("  3A Config:  ~/.3a/config.yaml\n")
+	fmt.Printf("  3A Config:  ~/.a3/config.yaml\n")
 	fmt.Println()
-	fmt.Printf("  Run: 3a assess %s\n", profileName)
+	fmt.Printf("  Run: a3 assess %s\n", profileName)
 
 	return nil
 }
@@ -249,7 +249,7 @@ func writeSteampipeAWSConfig(profileName, awsProfile string, regions []string) e
 	return nil
 }
 
-// write3AProfile writes or updates the 3A profile in ~/.3a/config.yaml.
+// write3AProfile writes or updates the 3A profile in ~/.a3/config.yaml.
 func write3AProfile(profileName, provider, awsProfile string, regions []string) error {
 	if _, err := config.EnsureConfigDir(); err != nil {
 		return err
@@ -260,7 +260,7 @@ func write3AProfile(profileName, provider, awsProfile string, regions []string) 
 	if err != nil {
 		// If config doesn't exist, create a new one.
 		cfg = &config.Config{
-			DBPath: "~/.3a/3a.db",
+			DBPath: "~/.a3/a3.db",
 			Steampipe: config.SteampipeConfig{
 				ConnectionString: "postgres://steampipe@localhost:9193/steampipe",
 			},

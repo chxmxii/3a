@@ -112,7 +112,7 @@ func runAssessment(profileName, connString string, noTUI bool) error {
 	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stderr)
 
-	// Ensure ~/.3a directory exists.
+	// Ensure ~/.a3 directory exists.
 	if _, err := config.EnsureConfigDir(); err != nil {
 		return err
 	}

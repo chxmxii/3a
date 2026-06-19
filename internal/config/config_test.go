@@ -16,8 +16,8 @@ func TestDefaultConfigPath(t *testing.T) {
 		t.Errorf("expected path to end with config.yaml, got %s", path)
 	}
 	dir := filepath.Base(filepath.Dir(path))
-	if dir != ".3a" {
-		t.Errorf("expected parent directory to be .3a, got %s", dir)
+	if dir != ".a3" {
+		t.Errorf("expected parent directory to be .a3, got %s", dir)
 	}
 }
 
@@ -119,7 +119,7 @@ profiles:
 
 func TestSaveAndLoad(t *testing.T) {
 	cfg := &Config{
-		DBPath: "~/.3a/assessments.db",
+		DBPath: "~/.a3/assessments.db",
 		Profiles: []AccountProfile{
 			{
 				Name:        "test-aws",

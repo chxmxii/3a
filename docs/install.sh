@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-REPO="chxmxii/3a"
-BINARY="3a"
+REPO="chxmxii/a3"
+BINARY="a3"
 INSTALL_DIR="/usr/local/bin"
 
 # Detect OS and arch.
@@ -50,4 +50,4 @@ fi
 
 echo "Installed $BINARY $VERSION to $INSTALL_DIR/$BINARY"
 echo ""
-echo "Run: 3a configure"
+echo "Run: a3 configure"

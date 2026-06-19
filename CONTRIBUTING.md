@@ -10,7 +10,7 @@ inclusion: manual
 cmd/3a/main.go           Entry point
 internal/
   cli/                   Cobra commands (assess, profiles, configure, report)
-  config/                YAML config management (~/.3a/config.yaml)
+  config/                YAML config management (~/.a3/config.yaml)
   provider/
     steampipe/           Steampipe discovery (SQL queries against cloud tables)
     provider.go          Provider interfaces and resource type constants
@@ -52,7 +52,7 @@ internal/
 ## Building and Testing
 
 ```bash
-task build          # Compile to bin/3a
+task build          # Compile to bin/a3
 task test           # Run all tests
 task check          # fmt + lint + test + build
 task setup          # First-time setup

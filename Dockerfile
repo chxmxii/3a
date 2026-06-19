@@ -16,16 +16,16 @@ ARG BUILD_TIME=unknown
 
 RUN CGO_ENABLED=1 go build \
     -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildTime=${BUILD_TIME}" \
-    -o /bin/3a ./cmd/3a/
+    -o /bin/a3 ./cmd/3a/
 
 # Runtime stage
 FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates sqlite-libs
 
-COPY --from=builder /bin/3a /usr/local/bin/3a
+COPY --from=builder /bin/a3 /usr/local/bin/a3
 
-RUN mkdir -p /root/.3a
+RUN mkdir -p /root/.a3
 
-ENTRYPOINT ["3a"]
+ENTRYPOINT ["a3"]
 CMD ["--help"]

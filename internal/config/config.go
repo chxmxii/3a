@@ -50,22 +50,22 @@ func (e *ConfigError) Unwrap() error {
 	return e.Err
 }
 
-// DefaultConfigPath returns the default configuration file path: ~/.3a/config.yaml
+// DefaultConfigPath returns the default configuration file path: ~/.a3/config.yaml
 func DefaultConfigPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return filepath.Join("~", ".3a", "config.yaml")
+		return filepath.Join("~", ".a3", "config.yaml")
 	}
-	return filepath.Join(home, ".3a", "config.yaml")
+	return filepath.Join(home, ".a3", "config.yaml")
 }
 
-// EnsureConfigDir creates ~/.3a if it doesn't exist and returns the path.
+// EnsureConfigDir creates ~/.a3 if it doesn't exist and returns the path.
 func EnsureConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("cannot determine home directory: %w", err)
 	}
-	dir := filepath.Join(home, ".3a")
+	dir := filepath.Join(home, ".a3")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("cannot create config directory %s: %w", dir, err)
 	}

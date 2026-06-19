@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  BINARY: 3a
+  BINARY: a3
   BUILD_DIR: bin
   VERSION:
     sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
@@ -22,7 +22,7 @@ tasks:
       - task: build
 
   build:
-    desc: Compile the 3a binary
+    desc: Compile the a3 binary
     cmds:
       - mkdir -p {{.BUILD_DIR}}
       - go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/{{.BINARY}} ./cmd/3a/
@@ -35,11 +35,11 @@ tasks:
       - '{{.BUILD_DIR}}/{{.BINARY}}'
 
   install:
-    desc: Install 3a to $GOPATH/bin (or /usr/local/bin)
+    desc: Install a3 to $GOPATH/bin (or /usr/local/bin)
     cmds:
       - go install -ldflags "{{.LDFLAGS}}" ./cmd/3a/
     status:
-      - which 3a
+      - which a3
 
   install-local:
     desc: Build and copy to /usr/local/bin (requires sudo)
@@ -112,7 +112,7 @@ tasks:
     desc: First-time setup (install deps, create config dir, add bin to PATH)
     cmds:
       - go mod download
-      - mkdir -p ~/.3a
+      - mkdir -p ~/.a3
       - task: build
       - cmd: grep -q "$(pwd)/bin" ~/.bashrc 2>/dev/null || echo 'export PATH="{{.ROOT_DIR}}/bin:$PATH"' >> ~/.bashrc
         ignore_error: true

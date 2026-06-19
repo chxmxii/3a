@@ -33,7 +33,7 @@ func newProfilesListCmd() *cobra.Command {
 
 			profiles := config.ListProfiles(cfg)
 			if len(profiles) == 0 {
-				fmt.Println("No profiles configured. Use '3a profiles add' to create one.")
+				fmt.Println("No profiles configured. Use 'a3 profiles add' to create one.")
 				return nil
 			}
 
@@ -71,7 +71,7 @@ func newProfilesAddCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
-			// Ensure ~/.3a exists.
+			// Ensure ~/.a3 exists.
 			if _, err := config.EnsureConfigDir(); err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func newProfilesAddCmd() *cobra.Command {
 			if err != nil {
 				// Create new config if it doesn't exist.
 				cfg = &config.Config{
-					DBPath: "~/.3a/3a.db",
+					DBPath: "~/.a3/a3.db",
 				}
 			}
 
