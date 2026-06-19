@@ -60,7 +60,7 @@ func (r *VPCDefaultSGRule) Evaluate(_ context.Context, resource storage.Resource
 		return []assessment.Finding{{
 			Severity:       assessment.SeverityMedium,
 			ResourceID:     resource.ResourceID,
-			Description:    fmt.Sprintf("Default security group in VPC has inbound rules configured"),
+			Description:    "Default security group in VPC has inbound rules configured",
 			Recommendation: "Remove all inbound/outbound rules from the default security group. Use custom SGs instead.",
 			StandardName:   r.Standard(),
 			ControlID:      r.ControlID(),
