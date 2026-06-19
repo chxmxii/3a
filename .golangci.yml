@@ -1,0 +1,13 @@
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - unused
+    - staticcheck
+
+issues:
+  exclude-rules:
+    - path: internal/report/excel\.go
+      linters:
+        - errcheck
