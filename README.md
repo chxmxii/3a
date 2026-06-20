@@ -2,7 +2,7 @@
   <img src="docs/assets/logo.png" alt="A3" width="180">
 </p>
 
-# A3 / Agnostic Account Assessment
+# A3 / Cloud-Agnostic Account Assessment
 
 Terminal-based cloud account assessment tool. Discovers resources, maps architecture, evaluates security posture, estimates costs, and generates reports.
 
